@@ -2,9 +2,9 @@
 # see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
 # for examples
 
-{% for pathvar in vars['env_paths'] %}
+{% if vars['env_paths'] %}{% for pathvar in vars['env_paths'] %}
 export PATH="$PATH:{{ pathvar }}"
-{% endfor %}
+{% endfor %}{% endif -%}
 
 # If not running interactively, don't do anything
 [ -z "$PS1" ] && return
