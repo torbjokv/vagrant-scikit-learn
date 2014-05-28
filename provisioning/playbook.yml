@@ -24,6 +24,7 @@
       with_items:
         - mysql-common
         - libmysqlclient-dev 
+        - python-pip
         - python-pycurl
         - python-dev
         - python-numpy
@@ -35,5 +36,36 @@
         - python-scikits-learn
         - ipython-notebook
 
+    - name: Install pip packages
+      pip: name={{item}}
+      with_items:
+        - virtualenv
+
+    - name: Install pip app requirements
+      pip: requirements=/home/{{hostvars[inventory_hostname]['app_user']}}/project/requirements.txt
+
+    - name: mongodb - add key
+      command: apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10
+
+    - name: mongodb - add repository
+      shell: 
+        echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | sudo tee /etc/apt/sources.list.d/10gen.list
+        creates=/etc/apt/sources.list.d/10gen.list
+
+    - name: mongodb - install
+      apt: pkg=mongodb-10gen state=present update_cache=yes
+
+    - name: mongodb - add config file
+      template:
+        src=templates/mongodb.conf.j2
+        dest=/etc/mongodb.conf
+        owner=root group=root mode=0644
+      notify:
+      - mongodb-restart
+
+    - name: mongodb - start
+      service: name=mongodb state=started
+
   handlers:
-  
+    - name: mongodb-restart
+      service: name=mongodb state=restarted
